@@ -84,35 +84,39 @@ document.addEventListener('DOMContentLoaded', () => {
 document.getElementById('submit-location').addEventListener('click', () => {
     const latitude = document.getElementById('latitude').value;
     const longitude = document.getElementById('longitude').value;
+    const name = document.getElementById('location-name').value;
     const cloudCoverage = document.getElementById('cloud-coverage').value;
+    const notificationLeadTime = document.getElementById('notification-lead-time').value;
 
     if (latitude && longitude) {
-        fetch('/get_landsat_data', {
+        fetch('/submit_location', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                latitude: latitude,
-                longitude: longitude,
-                cloud_coverage_threshold: cloudCoverage
+                latitude: parseFloat(latitude),
+                longitude: parseFloat(longitude),
+                name: name,
+                cloud_coverage_threshold: parseFloat(cloudCoverage),
+                notification_lead_time: parseInt(notificationLeadTime)
             }),
         })
         .then(response => response.json())
         .then(data => {
-            if (data.data.length > 0) {
-                const resultDiv = document.getElementById('result');
-                let htmlContent = '<h3>Available Landsat Data:</h3><ul>';
-                data.data.forEach(scene => {
-                    htmlContent += `<li>Date: ${scene.date}, Cloud Coverage: ${scene.cloud_coverage}%</li>`;
-                });
-                htmlContent += '</ul>';
-                resultDiv.innerHTML = htmlContent;
+            if (data.error) {
+                alert(data.error);
             } else {
-                resultDiv.textContent = 'No available Landsat scenes for this location and cloud coverage threshold.';
+                alert(data.message);
+                // Update the UI with the new location and Landsat data
+                updateLocationList(data.location);
+                displayLandsatData(data.landsat_data);
             }
         })
-        .catch(error => console.error('Error:', error));
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while submitting the location.');
+        });
     } else {
         alert('Please enter both latitude and longitude.');
     }
