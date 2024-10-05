@@ -411,6 +411,6 @@ if __name__ == '__main__':
     scheduler.start()
     
     try:
-        app.run(debug=True)
+        app.run(debug=False)
     finally:
         scheduler.shutdown()
